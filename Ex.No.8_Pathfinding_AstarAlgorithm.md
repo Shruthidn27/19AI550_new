@@ -131,20 +131,14 @@ public class AICharacter : MonoBehaviour {
         }
     }
 }
+```
 Check the following
 1. Waypoints placed in scene
 2. Neighbors set manually via Inspector
 3. WaypointGraph script on a manager
 4. AICharacter assigned a start and goal
 ### Output:
-
-
-
-
-
-
-
-
+<img width="1919" height="1021" alt="image" src="https://github.com/user-attachments/assets/d6c40c15-857d-4887-bf54-71ab18378fba" />
 
 ### Result:
 Thus the pathfinding algorithm was sucessfully implemented.
