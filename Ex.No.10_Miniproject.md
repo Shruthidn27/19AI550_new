@@ -20,66 +20,138 @@ To develop a game a coin collector in Unity
 7.Continuously update movement, jumping, and collisions each frame.
 ```
 ### Program:
+
+### slingshot.cs
 ```
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class Slingshot : MonoBehaviour
 {
-    public float moveSpeed = 5f;
-    public float jumpForce = 10f;
-    private Rigidbody2D rb;
-    private bool isGrounded;
+    public LineRenderer[] lineRenderers;
+    public Transform[] stripPositions;
+    public Transform center;
+    public Transform idlePosition;
+
+    public Vector3 currentPosition;
+    public float maxLength;
+    public float bottomBoundary;
+    bool isMouseDown;
+    public GameObject birdPrefab;
+    public float birdPositionOffset;
+    Rigidbody2D bird;
+    Collider2D birdCollider;
+    public float force;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        lineRenderers[0].positionCount = 2;
+        lineRenderers[1].positionCount = 2;
+        lineRenderers[0].SetPosition(0, stripPositions[0].position);
+        lineRenderers[1].SetPosition(0, stripPositions[1].position);
+        CreateBird();
+    }
+
+    void CreateBird()
+    {
+        bird = Instantiate(birdPrefab).GetComponent<Rigidbody2D>();
+        birdCollider = bird.GetComponent<Collider2D>();
+        birdCollider.enabled = false;
+        bird.bodyType = RigidbodyType2D.Kinematic;
+        ResetStrips();
     }
 
     void Update()
     {
-        // Move left/right
-        float move = Input.GetAxis("Horizontal");
-        rb.velocity = new Vector2(move * moveSpeed, rb.velocity.y);
-
-        // Flip direction
-        if (move > 0)
-            transform.localScale = new Vector3(1, 1, 1);
-        else if (move < 0)
-            transform.localScale = new Vector3(-1, 1, 1);
-
-        // Jump
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        if (isMouseDown)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            Vector3 mousePosition = Input.mousePosition;
+            mousePosition.z = 10;
+            currentPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            currentPosition = center.position + Vector3.ClampMagnitude(currentPosition - center.position, maxLength);
+            currentPosition = ClampBoundary(currentPosition);
+            SetStrips(currentPosition);
+
+            if (birdCollider)
+                birdCollider.enabled = true;
+        }
+        else
+        {
+            ResetStrips();
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnMouseDown() => isMouseDown = true;
+
+    private void OnMouseUp()
     {
-        if (collision.gameObject.CompareTag("Ground"))
+        isMouseDown = false;
+        Shoot();
+        currentPosition = idlePosition.position;
+    }
+
+    void Shoot()
+    {
+        bird.bodyType = RigidbodyType2D.Dynamic;
+        Vector3 birdForce = (currentPosition - center.position) * force * -1;
+        bird.linearVelocity = birdForce;
+
+        bird.GetComponent<Bird>().Release();
+
+        bird = null;
+        birdCollider = null;
+        Invoke("CreateBird", 2);
+    }
+
+    void ResetStrips()
+    {
+        currentPosition = idlePosition.position;
+        SetStrips(currentPosition);
+    }
+
+    void SetStrips(Vector3 position)
+    {
+        lineRenderers[0].SetPosition(1, position);
+        lineRenderers[1].SetPosition(1, position);
+
+        if (bird)
         {
-            isGrounded = true;
+            Vector3 dir = position - center.position;
+            bird.transform.position = position + dir.normalized * birdPositionOffset;
+            bird.transform.right = -dir.normalized;
         }
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
+    Vector3 ClampBoundary(Vector3 vector)
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = false;
-        }
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Coin"))
-        {
-            Destroy(other.gameObject);
-            Debug.Log("Coin collected!");
-        }
+        vector.y = Mathf.Clamp(vector.y, bottomBoundary, 1000);
+        return vector;
     }
 }
 
+```
+
+### bird.cs
+```
+using UnityEngine;
+
+public class Bird : MonoBehaviour
+{
+    private Rigidbody2D rb;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
+
+    public void Release()
+    {
+        // This will be called from the Slingshot when you release the bird
+        // You can add extra behavior here like enabling a trail, sounds, etc.
+        Debug.Log("Bird released!");
+    }
+}
 ```
 ### Output:
 ![ai for games op1](https://github.com/user-attachments/assets/3f784a12-235c-425f-8ffb-b129f4eb72bb)
