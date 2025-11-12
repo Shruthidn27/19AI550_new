@@ -1,23 +1,31 @@
-# Ex.No: 10  Implementation of 2D/3D game coin collector 
+# Ex.No: 10  Implementation of 2D/3D Bird game
 ### DATE:22/10/2025                                                                         
 ### REGISTER NUMBER : 212223240155
 ### AIM: 
-To develop a game a coin collector in Unity 
+To develop a Slingshot Bird  game in Unity 
 ### Algorithm:
 ```
-1.Initialize player components and variables.
+1.Initialize slingshot components, line renderers, and bird variables.
 
-2.Detect horizontal movement input from the player.
+2.Create and position a new bird at the slingshot’s idle position.
 
-3.Move the player left or right based on input.
+3.Detect mouse click and hold to start aiming.
 
-4.Detect jump input and apply upward force if grounded.
+4.Track mouse position in world space while dragging.
 
-5.Check collisions with the ground to update grounded state.
+5.Clamp the drag distance within maximum range and boundaries.
 
-6.Detect trigger collisions with coins and collect them.
+6.Update slingshot bands and bird position visually based on drag.
 
-7.Continuously update movement, jumping, and collisions each frame.
+7.On mouse release, calculate launch direction and force.
+
+8.Apply the launch force to the bird’s Rigidbody to shoot it.
+
+9.Call the bird’s Release() method to trigger post-launch behavior.
+
+10.Reset slingshot visuals and spawn a new bird after a short delay.
+
+11.Continuously update aiming, launching, and bird creation each frame.
 ```
 ### Program:
 
